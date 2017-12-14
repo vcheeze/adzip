@@ -1,22 +1,15 @@
 /**
- * Operating Systems Project 3
- * Reader and Writers Problem
- * Implementing a starvation free solution
+ * Operating Systems Project 4
  */
 
 #include <iostream>
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <semaphore.h>
+
 
 using namespace std;
 
-#define DATA_SIZE 20
-#define CTRL_SIZE 3*sizeof(sem_t) + sizeof(int)
-
 
 int main(int argc, char *argv[]) {
-  cout << "Creating the shared segment!" << endl;
+  // cout << "Creating the shared segment!" << endl;
 
   int shmid = 0;
   // sem_t *sem;
