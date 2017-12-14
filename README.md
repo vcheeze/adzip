@@ -9,3 +9,4 @@ Enter `make` in the command line in order to compile the files. The program is i
 
 The parameters are described here:
 * `-c`: store in the archive file the files/directories provided by the files/directories list. If other additional files/directories exist in <file/directories list>, then all this content is recursively stored in the <archive-file>.
+* 
