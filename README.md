@@ -10,3 +10,6 @@ Enter `make` in the command line in order to compile the files. The program is i
 The parameters are described here:
 * `-c`: store in the archive file the files/directories provided by the files/directories list. If other additional files/directories exist in <file/directory list>, then all this content is recursively stored in the \<archive-file>.
 * `-a`: append filesystem entities indicated in the file <file/directory list> in the archive file \<archive-file> that already exists. If additional files/directories exist in <file/directory list>, they are recursively appended along with their content in the designated \<archive-file>.
+* `-x`: extract all files and directories that have been archived in file \<archive-file>.
+* `-m`: print out the meta data (owner, group, rights) for all files/directories that have been archived in \<archive-file>.
+* `-p`: display the hierarchy(-ies) of the files and directories stored in the \<archive-file>. Do this in a way that can be readily understood by the user.
