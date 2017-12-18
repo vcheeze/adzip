@@ -60,8 +60,12 @@ int main(int argc, char *argv[]) {
 
 //    DIR *root;
     struct dirent *dirp;
-    string archive_file;
-    char *input_dir;
+
+    char *archive_file, *input_dir;
+    int fd;
+
+    archive_file = argv[2];
+    input_dir = argv[3];
 
     // Getting arguments from the command line
     if (strcmp(argv[1], "-c") == 0) { // store
@@ -78,23 +82,20 @@ int main(int argc, char *argv[]) {
     }
     else if (strcmp(argv[1], "-p") == 0) { // display hierarchy
         // display hierarchy of files/directories inside archive file
+        listFiles(input_dir, true);
     }
     else { // no valid input provided
-        // invalid input
+        cerr << "[ERROR] Incorrect flag: please use -c, -a, -x, -m, or -p." << endl;
+        exit(1);
     }
 
-    archive_file = argv[2];
-    input_dir = argv[3];
-
-//    if ((root = opendir(input_dir)) == nullptr) {
-//        cerr << "Error: Cannot open input directory" << input_dir << endl;
-//        exit(1);
-//    }
-//    else {
-//        cout << "Success! Opened input directory: " << input_dir << endl;
-//        listFiles(root, true);
-//    }
-    listFiles(input_dir, true);
+    if ((fd = open(archive_file, O_CREAT | O_RDWR, PERMS)) == -1) {
+        cerr << "Error: Cannot open archive file" << archive_file << endl;
+        exit(1);
+    }
+    else {
+        cout << "Success! Opened archive file: " << archive_file << endl;
+    }
 
     return 0;
 }
