@@ -18,10 +18,32 @@ bool isDir(string dir) {
     struct stat fileInfo;
     stat(dir.c_str(), &fileInfo);
     if (S_ISDIR(fileInfo.st_mode)) {
+        cout << "User id: " << fileInfo.st_uid << endl;
+        cout << "Group id: " << fileInfo.st_gid << endl;
+        cout << "Size: " << fileInfo.st_size << endl;
+        cout << "Mode: " << fileInfo.st_mode << endl;
         return true;
     }
     else {
         return false;
+    }
+}
+
+void storeFiles(string baseDir, bool recursive) {
+    DIR *dp;
+    struct dirent *dirp;
+
+    if ((dp = opendir(baseDir.c_str())) == nullptr) {
+        cout << "[ERROR: " << errno << "] Cannot open " << baseDir << endl;
+        return;
+    }
+    else {
+        while ((dirp = readdir(dp)) != nullptr) {
+            if (dirp->d_name != string(".") && dirp->d_name != string("..") && dirp->d_name != string(".DS_Store")) {
+
+            }
+        }
+        closedir(dp);
     }
 }
 
@@ -30,7 +52,7 @@ void listFiles(string baseDir, bool recursive) {
     struct dirent *dirp;
 
     if ((dp = opendir(baseDir.c_str())) == nullptr) {
-        cout << "[ERROR: " << errno << "] Couldn't open " << baseDir << endl;
+        cout << "[ERROR: " << errno << "] Cannot open " << baseDir << endl;
         return;
     }
     else {
@@ -47,6 +69,7 @@ void listFiles(string baseDir, bool recursive) {
         closedir(dp);
     }
 }
+
 
 int main(int argc, char *argv[]) {
 
@@ -96,6 +119,8 @@ int main(int argc, char *argv[]) {
     else {
         cout << "Success! Opened archive file: " << archive_file << endl;
     }
+
+
 
     return 0;
 }
