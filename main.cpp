@@ -1,5 +1,6 @@
 /**
  * Operating Systems Project 4
+ * The functions isDir and listFiles come from SwedBo (https://bbs.archlinux.org/viewtopic.php?id=97216)
  */
 
 #include <iostream>
