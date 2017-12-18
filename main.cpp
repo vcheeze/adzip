@@ -95,15 +95,12 @@ void listFiles(string baseDir, bool recursive) {
 
 int main(int argc, char *argv[]) {
 
-    // cout << "Hello World!" << endl;
-
     if (argc != 4) {
         cerr << "[ERROR] Invalid arguments: please enter a command in this format:" <<
              "./adzip -flag <archive_file> <input_file>" << endl;
         exit(1);
     }
 
-//    DIR *root;
     struct dirent *dirp;
 
     char *archive_file, *input_dir;
@@ -121,14 +118,6 @@ int main(int argc, char *argv[]) {
         cerr << "[ERROR] Archive failed to open" << endl;
     }
 
-//    if ((fd = open(archive_file, O_CREAT | O_RDWR, PERMS)) == -1) { // open the archive file
-//        cerr << "Error: Cannot open archive file" << archive_file << endl;
-//        exit(1);
-//    }
-//    else {
-//        cout << "Success! Opened archive file: " << archive_file << endl;
-//    }
-
     // Getting arguments from the command line
     if (strcmp(argv[1], "-c") == 0) { // store
         // store files/directories into archive file
@@ -145,41 +134,33 @@ int main(int argc, char *argv[]) {
             while ((direntp = readdir(dp)) != nullptr) {
                 if (direntp->d_name != string(".") && direntp->d_name != string("..") &&
                     direntp->d_name != string(".DS_Store")) {
+                    // some char to string operations to make isDir and stat work
                     char x[100];
                     strcpy(x, input_dir);
                     string base = x;
                     string name = direntp->d_name;
+
                     if (isDir(base + name)) { // directory
 //                        storeFiles(archive, *input_dir + dirp->d_name + "/", true);
                     }
                     else { // file
-                        // char x[100];
-                        // strcpy(x, input_dir);
-                        // string base = x;
-                        // string name = direntp->d_name;
-                        // cout << a + b << endl;
                         // get information of the input file
                         struct stat fileInfo;
                         stat((base + name).c_str(), &fileInfo);
+                        base.pop_back(); // remove newline char
 
                         // writing to the archive file
-                        cout << base << name << endl;
-                        cout << fileInfo.st_uid << endl;
-                        cout << fileInfo.st_gid << endl;
-                        cout << fileInfo.st_mode << endl;
-                        cout << fileInfo.st_size << endl;
+                        cout << "File name: " << base << name << endl;
+                        cout << "User ID: " << fileInfo.st_uid << endl;
+                        cout << "Group ID: " << fileInfo.st_gid << endl;
+                        cout << "Mode: " << fileInfo.st_mode << endl;
+                        cout << "Size: " << fileInfo.st_size << endl;
 
-                        archive.write((base + name + "\0").c_str(), 126);
-//                        archive.write(reinterpret_cast<const char *>(fileInfo.st_uid), sizeof(uid_t));
-                        // archive.write(reinterpret_cast<const char *>(fileInfo.st_gid), sizeof(gid_t));
-                        // archive.write(reinterpret_cast<const char *>(fileInfo.st_mode), sizeof(mode_t));
-                        // archive.write(reinterpret_cast<const char *>(fileInfo.st_size), sizeof(off_t));
-
-                        archive << base << name; // write the name
-                        archive << fileInfo.st_uid;         // write the user ID
-//                    archive << fileInfo.st_gid;         // write the group ID
-//                    archive << fileInfo.st_mode;        // write the mode
-//                    archive << fileInfo.st_size;        // write the size
+                        archive.write((base + name + "\0").c_str(), 126); // write file name
+                        archive << fileInfo.st_uid;                       // write the user ID
+                        archive << fileInfo.st_gid;                       // write the group ID
+                        archive << fileInfo.st_mode;                      // write the mode
+                        archive << fileInfo.st_size;                      // write the size
                     }
                 }
             }
