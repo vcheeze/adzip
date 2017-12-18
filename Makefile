@@ -1,28 +1,10 @@
-all: reader writer creator destroyer
+all: adzip
 
-reader: reader.o
-	g++ reader.o -o reader
+adzip: main.o
+	g++ main.o -o adzip
 
-writer: writer.o
-	g++ writer.o -o writer
-
-creator: creator.o
-	g++ creator.o -o creator
-
-destroyer: destroyer.o
-	g++ destroyer.o -o destroyer
-
-reader.o: reader.cpp
-	g++ -c reader.cpp
-
-writer.o: writer.cpp
-	g++ -c writer.cpp
-
-creator.o: creator.cpp
-	g++ -c creator.cpp
-
-destroyer.o: destroyer.cpp
-	g++ -c destroyer.cpp
+main.o: main.cpp
+	g++ -c main.cpp
 
 clean:
-	rm -f *.o reader writer creator destroyer
+	rm -f *.o adzip
