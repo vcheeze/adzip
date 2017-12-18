@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     }
 
     DIR *root;
-    struct dirent *direntp;
+    struct dirent *dirp;
     string archive_file;
     char *input_dir;
 
@@ -55,8 +55,10 @@ int main(int argc, char *argv[]) {
     }
     else {
         cout << "Success! Opened input directory: " << input_dir << endl;
-        while ((direntp = readdir(root)) != nullptr) {
-            cout << direntp->d_name << endl;
+        while ((dirp = readdir(root)) != nullptr) {
+            if (dirp->d_name != string(".") && dirp->d_name != string("..") && dirp->d_name != string(".DS_Store")) {
+                cout << dirp->d_name << endl;
+            }
         }
         closedir(root);
     }
