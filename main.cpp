@@ -1,5 +1,6 @@
 /**
  * Operating Systems Project 4
+ * The functions isDir and listFiles come from SwedBo (https://bbs.archlinux.org/viewtopic.php?id=97216)
  */
 
 #include <iostream>
@@ -17,10 +18,32 @@ bool isDir(string dir) {
     struct stat fileInfo;
     stat(dir.c_str(), &fileInfo);
     if (S_ISDIR(fileInfo.st_mode)) {
+        cout << "User id: " << fileInfo.st_uid << endl;
+        cout << "Group id: " << fileInfo.st_gid << endl;
+        cout << "Size: " << fileInfo.st_size << endl;
+        cout << "Mode: " << fileInfo.st_mode << endl;
         return true;
     }
     else {
         return false;
+    }
+}
+
+void storeFiles(string baseDir, bool recursive) {
+    DIR *dp;
+    struct dirent *dirp;
+
+    if ((dp = opendir(baseDir.c_str())) == nullptr) {
+        cout << "[ERROR: " << errno << "] Cannot open " << baseDir << endl;
+        return;
+    }
+    else {
+        while ((dirp = readdir(dp)) != nullptr) {
+            if (dirp->d_name != string(".") && dirp->d_name != string("..") && dirp->d_name != string(".DS_Store")) {
+
+            }
+        }
+        closedir(dp);
     }
 }
 
@@ -29,7 +52,7 @@ void listFiles(string baseDir, bool recursive) {
     struct dirent *dirp;
 
     if ((dp = opendir(baseDir.c_str())) == nullptr) {
-        cout << "[ERROR: " << errno << "] Couldn't open " << baseDir << endl;
+        cout << "[ERROR: " << errno << "] Cannot open " << baseDir << endl;
         return;
     }
     else {
@@ -47,6 +70,7 @@ void listFiles(string baseDir, bool recursive) {
     }
 }
 
+
 int main(int argc, char *argv[]) {
 
     // cout << "Hello World!" << endl;
@@ -59,8 +83,12 @@ int main(int argc, char *argv[]) {
 
 //    DIR *root;
     struct dirent *dirp;
-    string archive_file;
-    char *input_dir;
+
+    char *archive_file, *input_dir;
+    int fd;
+
+    archive_file = argv[2];
+    input_dir = argv[3];
 
     // Getting arguments from the command line
     if (strcmp(argv[1], "-c") == 0) { // store
@@ -77,23 +105,22 @@ int main(int argc, char *argv[]) {
     }
     else if (strcmp(argv[1], "-p") == 0) { // display hierarchy
         // display hierarchy of files/directories inside archive file
+        listFiles(input_dir, true);
     }
     else { // no valid input provided
-        // invalid input
+        cerr << "[ERROR] Incorrect flag: please use -c, -a, -x, -m, or -p." << endl;
+        exit(1);
     }
 
-    archive_file = argv[2];
-    input_dir = argv[3];
+    if ((fd = open(archive_file, O_CREAT | O_RDWR, PERMS)) == -1) {
+        cerr << "Error: Cannot open archive file" << archive_file << endl;
+        exit(1);
+    }
+    else {
+        cout << "Success! Opened archive file: " << archive_file << endl;
+    }
 
-//    if ((root = opendir(input_dir)) == nullptr) {
-//        cerr << "Error: Cannot open input directory" << input_dir << endl;
-//        exit(1);
-//    }
-//    else {
-//        cout << "Success! Opened input directory: " << input_dir << endl;
-//        listFiles(root, true);
-//    }
-    listFiles(input_dir, true);
+
 
     return 0;
 }
