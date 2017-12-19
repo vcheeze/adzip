@@ -30,43 +30,52 @@ bool isDir(string dir) {
     }
 }
 
-// void storeFiles(ofstream archive, string baseDir, bool recursive) {
-//     DIR *dp;
-//     struct dirent *dirp;
+void storeFiles(fstream &archive, string baseDir, bool recursive) {
+    DIR *dp;
+    struct dirent *dirp;
 
-//     if ((dp = opendir(baseDir.c_str())) == nullptr) {
-//         cout << "[ERROR: " << errno << "] Cannot open " << baseDir << endl;
-//         return;
-//     }
-//     else {
-//         struct stat fileInfo;
-//         while ((dirp = readdir(dp)) != nullptr) {
-//             if (dirp->d_name != string(".") && dirp->d_name != string("..") && dirp->d_name != string(".DS_Store")) {
-//                 if (isDir(baseDir + dirp->d_name) && recursive) { // directory
-//                     storeFiles(archive, baseDir + dirp->d_name + "/", true);
-//                 }
-//                 else { // file
-//                     // get information of the input file
-//                     stat((baseDir + dirp->d_name).c_str(), &fileInfo);
+    if ((dp = opendir(baseDir.c_str())) == nullptr) {
+        cout << "[ERROR: " << errno << "] Cannot open " << baseDir << endl;
+    }
+    else {
+        cout << "Opened " << baseDir << endl;
 
-//                     // writing to the archive file
-//                     archive.write((baseDir + dirp->d_name).c_str(), 126);
-//                     archive.write(reinterpret_cast<const char *>(fileInfo.st_uid), sizeof(uid_t));
-//                     archive.write(reinterpret_cast<const char *>(fileInfo.st_gid), sizeof(gid_t));
-//                     archive.write(reinterpret_cast<const char *>(fileInfo.st_mode), sizeof(mode_t));
-//                     archive.write(reinterpret_cast<const char *>(fileInfo.st_size), sizeof(off_t));
+        while ((dirp = readdir(dp)) != nullptr) {
+            if (dirp->d_name != string(".") && dirp->d_name != string("..") &&
+                dirp->d_name != string(".DS_Store")) {
+                // some char to string operations to make isDir and stat work
+//            char x[100];
+//            strcpy(x, baseDir);
+                string base = baseDir;
+                string name = dirp->d_name;
 
-// //                    archive << baseDir << dirp->d_name; // write the name
-// //                    archive << fileInfo.st_uid;         // write the user ID
-// //                    archive << fileInfo.st_gid;         // write the group ID
-// //                    archive << fileInfo.st_mode;        // write the mode
-// //                    archive << fileInfo.st_size;        // write the size
-//                 }
-//             }
-//         }
-//         closedir(dp);
-//     }
-// }
+                if (isDir(base + name) && recursive) { // directory
+                    // storeFiles(archive, baseDir + dirp->d_name + "/", true);
+                }
+                else { // file
+                    // get information of the input file
+                    struct stat fileInfo;
+                    stat((base + name).c_str(), &fileInfo);
+                    base.pop_back(); // remove newline char
+
+                    cout << "File name: " << base << "/" << name << endl;
+                    cout << "User ID: " << fileInfo.st_uid << endl;
+                    cout << "Group ID: " << fileInfo.st_gid << endl;
+                    cout << "Mode: " << fileInfo.st_mode << endl;
+                    cout << "Size: " << fileInfo.st_size << endl;
+
+                    // write meta data to the archive file
+                    archive.write((base + name + "\0").c_str(), 126); // write file name
+                    archive << fileInfo.st_uid;                       // write the user ID
+                    archive << fileInfo.st_gid;                       // write the group ID
+                    archive << fileInfo.st_mode;                      // write the mode
+                    archive << fileInfo.st_size;                      // write the size
+                }
+            }
+        }
+        closedir(dp);
+    }
+}
 
 void listFiles(string baseDir, bool recursive) {
     DIR *dp;
@@ -121,51 +130,7 @@ int main(int argc, char *argv[]) {
     // Getting arguments from the command line
     if (strcmp(argv[1], "-c") == 0) { // store
         // store files/directories into archive file
-//        storeFiles(archive, input_dir, true);
-        DIR *dp;
-        struct dirent *direntp;
-
-        if ((dp = opendir(input_dir)) == nullptr) {
-            cout << "[ERROR: " << errno << "] Cannot open " << input_dir << endl;
-        }
-        else {
-            cout << "Opened " << input_dir << endl;
-
-            while ((direntp = readdir(dp)) != nullptr) {
-                if (direntp->d_name != string(".") && direntp->d_name != string("..") &&
-                    direntp->d_name != string(".DS_Store")) {
-                    // some char to string operations to make isDir and stat work
-                    char x[100];
-                    strcpy(x, input_dir);
-                    string base = x;
-                    string name = direntp->d_name;
-
-                    if (isDir(base + name)) { // directory
-//                        storeFiles(archive, *input_dir + dirp->d_name + "/", true);
-                    }
-                    else { // file
-                        // get information of the input file
-                        struct stat fileInfo;
-                        stat((base + name).c_str(), &fileInfo);
-                        base.pop_back(); // remove newline char
-
-                        // writing to the archive file
-                        cout << "File name: " << base << name << endl;
-                        cout << "User ID: " << fileInfo.st_uid << endl;
-                        cout << "Group ID: " << fileInfo.st_gid << endl;
-                        cout << "Mode: " << fileInfo.st_mode << endl;
-                        cout << "Size: " << fileInfo.st_size << endl;
-
-                        archive.write((base + name + "\0").c_str(), 126); // write file name
-                        archive << fileInfo.st_uid;                       // write the user ID
-                        archive << fileInfo.st_gid;                       // write the group ID
-                        archive << fileInfo.st_mode;                      // write the mode
-                        archive << fileInfo.st_size;                      // write the size
-                    }
-                }
-            }
-            closedir(dp);
-        }
+        storeFiles(archive, input_dir, true);
     }
     else if (strcmp(argv[1], "-a") == 0) { // append
         // append files/directories into archive file
