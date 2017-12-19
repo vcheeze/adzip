@@ -40,7 +40,7 @@ void storeFiles(fstream &archive, string baseDir, bool recursive) {
     else {
         cout << "Opened " << baseDir << endl;
 
-        while ((dirp = readdir(dp)) != nullptr) {
+        while ((dirp = readdir(dp)) != nullptr) { // iterate through the directory
             if (dirp->d_name != string(".") && dirp->d_name != string("..") &&
                 dirp->d_name != string(".DS_Store")) {
                 // some char to string operations to make isDir and stat work
@@ -56,9 +56,9 @@ void storeFiles(fstream &archive, string baseDir, bool recursive) {
                     // get information of the input file
                     struct stat fileInfo;
                     stat((base + name).c_str(), &fileInfo);
-                    base.pop_back(); // remove newline char
+//                    base.pop_back(); // remove newline char
 
-                    cout << "File name: " << base << "/" << name << endl;
+                    cout << "File name: " << base << name << endl;
                     cout << "User ID: " << fileInfo.st_uid << endl;
                     cout << "Group ID: " << fileInfo.st_gid << endl;
                     cout << "Mode: " << fileInfo.st_mode << endl;
@@ -70,6 +70,22 @@ void storeFiles(fstream &archive, string baseDir, bool recursive) {
                     archive << fileInfo.st_gid;                       // write the group ID
                     archive << fileInfo.st_mode;                      // write the mode
                     archive << fileInfo.st_size;                      // write the size
+
+                    // copy the file content
+                    ifstream infile;
+                    char c;
+
+                    infile.open(base + name);
+                    if (infile.is_open()) {
+                        while (!infile.eof()) {
+                            c = (char) infile.get();
+                            archive.put(c);
+                        }
+                        infile.close();
+                    }
+                    else {
+                        cerr << "[ERROR] Failed to open file: " << base << name << endl;
+                    }
                 }
             }
         }
