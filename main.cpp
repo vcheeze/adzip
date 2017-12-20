@@ -43,7 +43,7 @@ void storeFiles(fstream &archive, string baseDir, bool recursive, int &file_coun
                 string name = dirp->d_name;
 
                 if (isDir(base + name) && recursive) { // directory
-                    // storeFiles(archive, baseDir + dirp->d_name + "/", true);
+                    storeFiles(archive, baseDir + dirp->d_name + "/", true, file_count);
                 }
                 else { // file
                     // get information of the input file
@@ -104,7 +104,7 @@ void printMetaData(fstream &archive, int file_count) {
     int offset = 0;
 
     // get meta data for files
-    for (int i = 0; i < 3; i++) {        
+    for (int i = 0; i < 16; i++) {        
         // file name
         archive.read(filename, 126);
         cout << "[FILE]\t" << filename << endl;
