@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
     archive_file = argv[2];
     input_dir = argv[3];
 
-    archive.open(archive_file, fstream::in | fstream:: out | fstream::app);
+    archive.open(archive_file, fstream::in | fstream::out | fstream::app);
 
     if (archive.is_open()) {
         cout << "Archive is opened" << endl;
