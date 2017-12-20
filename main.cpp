@@ -29,6 +29,9 @@ void storeFiles(fstream &archive, string baseDir, bool recursive, int &file_coun
     DIR *dp;
     struct dirent *dirp;
 
+    int position = archive.tellg();
+    cout << "Position: " << position << endl;
+
     if ((dp = opendir(baseDir.c_str())) == nullptr) {
         cout << "[ERROR: " << errno << "] Cannot open " << baseDir << endl;
     }
@@ -91,6 +94,59 @@ void storeFiles(fstream &archive, string baseDir, bool recursive, int &file_coun
             }
         }
         closedir(dp);
+    }
+}
+
+void extractFiles(fstream &archive) {
+    cout << "Extracting files" << endl;
+    char filename[126], size[10];
+    string new_baseDir = "extracted_structure/";
+    // find the length of the archive
+    archive.seekg(0, archive.end);
+    int length = archive.tellg();
+    // set the position to beginnign of archive
+    archive.seekg(0, archive.beg);
+    int offset = 0;
+
+    // get meta data for files
+    for (int i = 0; i < 3; i++) {        
+        // file name
+        archive.read(filename, 126);
+        cout << "[FILE]\t" << filename << endl;
+
+        size_t pos = 0;
+        string token, new_filename = filename, delimiter = "/";
+        while ((pos = new_filename.find(delimiter)) != string::npos) {
+            token = new_filename.substr(0, pos);
+            cout << token << endl;
+            new_filename.erase(0, pos + delimiter.length());
+        }
+        cout << new_filename << endl;
+
+        archive.seekg(14, archive.cur);
+
+        // size
+        archive.read(size, 10);
+        cout << "\tSize: " << size << endl;
+
+        ofstream new_file;
+        new_file.open(new_baseDir + new_filename, ofstream::out | ofstream::app);
+        if (new_file.is_open()) {
+            cout << "New file opened: " << new_filename << endl;
+        }
+        else {
+            cerr << "[ERROR] Failed to open new file: " << new_baseDir + new_filename << endl;
+        }
+        offset = stoi(size);
+        char new_data[offset];
+        cout << new_data << endl;
+        archive.read(new_data, offset);
+        new_file.write(new_data, offset);
+        new_file.close();
+
+        // get to the next file
+        
+        archive.seekg(1, archive.cur);
     }
 }
 
@@ -157,25 +213,6 @@ void listFiles(string baseDir, bool recursive) {
     }
 }
 
-void openArchive(fstream &archive, char* archive_file, bool discardContent) {
-    if (discardContent) {
-        cout << "discarding content" << endl; 
-        archive.open(archive_file, fstream::in | fstream:: out | fstream::trunc);
-    }
-    else {
-        cout << "keeping content" << endl; 
-        archive.open(archive_file, fstream::in | fstream::out | fstream::app);
-    }
-
-
-    if (archive.is_open()) {
-        cout << "Archive is opened" << endl;
-    }
-    else {
-        cerr << "[ERROR] Archive failed to open" << endl;
-    }    
-}
-
 int main(int argc, char *argv[]) {
 
     if (argc != 4) {
@@ -199,7 +236,7 @@ int main(int argc, char *argv[]) {
     }
     else {
         cerr << "[ERROR] Archive failed to open" << endl;
-    } 
+    }
 
     // Getting arguments from the command line
     if (strcmp(argv[1], "-c") == 0) { // store
@@ -214,6 +251,7 @@ int main(int argc, char *argv[]) {
     }
     else if (strcmp(argv[1], "-x") == 0) { // extract
         // extract all files from archive file
+        extractFiles(archive);
     }
     else if (strcmp(argv[1], "-m") == 0) { // print meta data
         // print out meta data for all files/directories inside archive file
