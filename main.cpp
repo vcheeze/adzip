@@ -102,31 +102,49 @@ void storeFiles(fstream &archive, string baseDir, bool recursive) {
 
 void printMetaData(fstream &archive) {
     cout << "Printing meta data" << endl;
-    char filename[126], uid[sizeof(uid_t)], gid[sizeof(gid_t)], mode[sizeof(mode_t)], size[sizeof(off_t)];
+    char filename[126], uid[4], gid[4], mode[6], size[10];
+    // find the length of the archive
+    archive.seekg(0, archive.end);
+    int length = archive.tellg();
+    // cout << length << endl;
+    // set the position to beginnign of archive
+    archive.seekg(0, archive.beg);
+    int position = archive.tellg();
+    int offset = 0;
 
     // cout << archive.rdbuf() << endl;
 
-    // getting the file name
-    cout << "Getting file name" << endl;
-    archive.seekg(0, archive.beg);
-    archive.read(filename, 126);
-    cout << filename << endl;
+    while (position < length) {        
+        // get meta data for first file
+        // position = archive.tellg();
+        // cout << position << endl;
+        archive.read(filename, 126);
+        cout << "[FILE]\t" << filename << endl;
 
-    archive.seekg(126, archive.beg);
-    archive.read(uid, 4);
-    cout << uid << endl;
+        // position = archive.tellg();
+        // cout << position << endl;
+        archive.read(uid, 4);
+        cout << "\tUser ID: " << uid << endl;
 
-    archive.seekg(130, archive.beg);
-    archive.read(gid, 4);
-    cout << gid << endl;
+        // position = archive.tellg();
+        // cout << position << endl;
+        archive.read(gid, 4);
+        cout << "\tGroup ID: " << gid << endl;
 
-    archive.seekg(134, archive.beg);
-    archive.read(mode, 6);
-    cout << mode << endl;
+        // position = archive.tellg();
+        // cout << position << endl;
+        archive.read(mode, 6);
+        cout << "\tMode: " << mode << endl;
 
-    archive.seekg(140, archive.beg);
-    archive.read(size, 10);
-    cout << size << endl;
+        // position = archive.tellg();
+        // cout << position << endl;
+        archive.read(size, 10);
+        cout << "\tSize: " << size << endl;
+
+        offset = stoi(size);
+        position += offset;
+        archive.seekg(offset + 1, archive.cur);
+    }
 }
 
 void listFiles(string baseDir, bool recursive) {
