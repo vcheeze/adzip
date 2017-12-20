@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #define HDR_SIZE 150
 
@@ -104,8 +105,12 @@ void printMetaData(fstream &archive, int file_count) {
     archive.seekg(0, archive.beg);
     int offset = 0;
 
+    int current; 
+
     // get meta data for files
-    for (int i = 0; i < 16; i++) {        
+    
+    // for (int i = 0; i < 16; i++) {        
+    while (current < length) {
         // file name
         archive.read(filename, 126);
         cout << "[FILE]\t" << filename << endl;
@@ -129,7 +134,85 @@ void printMetaData(fstream &archive, int file_count) {
         // get to the next file
         offset = stoi(size);
         archive.seekg(offset + 1, archive.cur);
+        current = archive.tellg();
     }
+}
+
+void extractFiles(fstream &archive, bool recursive) {
+    cout << "Extracting files" << endl;
+    char filename[126], uid[4], gid[4], mode[6], size[10], content[1000], path[126];
+    // find the length of the archive
+    archive.seekg(0, archive.end);
+    int length = archive.tellg();
+    // set the position to beginnign of archive
+    archive.seekg(0, archive.beg);
+    int offset = 0;
+    // keep track of where it is positioned
+    int current;
+
+    // get meta data for files
+    while (current < length) {
+        // file name
+        archive.read(filename, 126);
+        cout << "[FILE]\t" << filename << endl;
+
+        // user ID
+        archive.read(uid, 4);
+        cout << "\tUser ID: " << uid << endl;
+
+        // group ID
+        archive.read(gid, 4);
+        cout << "\tGroup ID: " << gid << endl;
+
+        // mode
+        archive.read(mode, 6);
+        cout << "\tMode: " << mode << endl;
+
+        // size
+        archive.read(size, 10);
+        cout << "\tSize: " << size << endl;
+
+        // // content 
+        // archive.read(content, 1000); 
+        // cout << "\tContent: " << size << endl;
+
+        char *splitName;
+
+        splitName = strtok (filename, "/");  
+        // printf("DIRECTORY: %s\n", splitName);
+        strcpy(path, splitName); 
+        mkdir(path,  0777);
+        splitName = strtok (NULL, "/");
+
+        while (splitName != NULL) {
+            // if a directory
+            // path = splitName , "/" , path; 
+            strcat (path, "/"); 
+            strcat (path, splitName);
+
+            cout << "PATH: " << path << endl;
+            mkdir(path,  0777);
+
+            printf ("%s\n",splitName);
+            splitName = strtok (NULL, "/");
+        }
+
+        rmdir(path); 
+
+        fstream newFile; 
+        newFile.open(path, fstream::in | fstream:: out | fstream::trunc);    
+        if (newFile.is_open()) {
+            cout << "File created" << endl;
+        }
+        else {
+            cerr << "[ERROR] New file failed to open" << endl;
+        }  
+
+        // get to the next file
+        offset = stoi(size);
+        archive.seekg(offset + 1, archive.cur);
+        current = archive.tellg();
+    }    
 }
 
 void listFiles(string baseDir, bool recursive) {
@@ -214,6 +297,7 @@ int main(int argc, char *argv[]) {
     }
     else if (strcmp(argv[1], "-x") == 0) { // extract
         // extract all files from archive file
+        extractFiles(archive, true); 
     }
     else if (strcmp(argv[1], "-m") == 0) { // print meta data
         // print out meta data for all files/directories inside archive file
