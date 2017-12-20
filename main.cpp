@@ -142,7 +142,8 @@ void listFiles(string baseDir, bool recursive) {
     }
     else {
         while ((dirp = readdir(dp)) != nullptr) {
-            if (dirp->d_name != string(".") && dirp->d_name != string("..") && dirp->d_name != string(".DS_Store")) {
+            if (dirp->d_name != string(".") && dirp->d_name != string("..") &&
+                dirp->d_name != string(".DS_Store")) {
                 if (isDir(baseDir + dirp->d_name) && recursive) { // directory
                     cout << "[DIR]\t" << baseDir << dirp->d_name << "/" << endl;
                     listFiles(baseDir + dirp->d_name + "/", true);
@@ -163,7 +164,7 @@ void openArchive(fstream &archive, char* archive_file, bool discardContent) {
     }
     else {
         cout << "keeping content" << endl; 
-        archive.open(archive_file, std::ios::app);
+        archive.open(archive_file, fstream::in | fstream::out | fstream::app);
     }
 
 
@@ -192,24 +193,23 @@ int main(int argc, char *argv[]) {
     archive_file = argv[2];
     input_dir = argv[3];
 
-    // archive.open(archive_file, fstream::in | fstream::out | fstream::app);
-
-    // if (archive.is_open()) {
-    //     cout << "Archive is opened" << endl;
-    // }
-    // else {
-    //     cerr << "[ERROR] Archive failed to open" << endl;
-    // }
+    archive.open(archive_file, fstream::in | fstream::out | fstream::app);
+    if (archive.is_open()) {
+        cout << "Archive is opened" << endl;
+    }
+    else {
+        cerr << "[ERROR] Archive failed to open" << endl;
+    } 
 
     // Getting arguments from the command line
     if (strcmp(argv[1], "-c") == 0) { // store
         // store files/directories into archive file
-        openArchive(archive, input_dir, true);
+        // openArchive(archive, input_dir, true);
         storeFiles(archive, input_dir, true, file_count);
     }
     else if (strcmp(argv[1], "-a") == 0) { // append
         // append files/directories into archive file
-        openArchive(archive, input_dir, false);
+        // openArchive(archive, input_dir, false);
         storeFiles(archive, input_dir, true, file_count);
     }
     else if (strcmp(argv[1], "-x") == 0) { // extract
@@ -217,6 +217,7 @@ int main(int argc, char *argv[]) {
     }
     else if (strcmp(argv[1], "-m") == 0) { // print meta data
         // print out meta data for all files/directories inside archive file
+        // openArchive(archive, input_dir, false);
         printMetaData(archive, file_count);
     }
     else if (strcmp(argv[1], "-p") == 0) { // display hierarchy
