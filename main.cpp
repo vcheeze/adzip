@@ -155,6 +155,25 @@ void listFiles(string baseDir, bool recursive) {
     }
 }
 
+void openArchive(fstream &archive, char* archive_file, bool discardContent) {
+    if (discardContent) {
+        cout << "discarding content" << endl; 
+        archive.open(archive_file, fstream::in | fstream:: out | fstream::trunc);
+    }
+    else {
+        cout << "keeping content" << endl; 
+        archive.open(archive_file, std::ios::app);
+    }
+
+
+    if (archive.is_open()) {
+        cout << "Archive is opened" << endl;
+    }
+    else {
+        cerr << "[ERROR] Archive failed to open" << endl;
+    }    
+}
+
 int main(int argc, char *argv[]) {
 
     if (argc != 4) {
@@ -172,22 +191,24 @@ int main(int argc, char *argv[]) {
     archive_file = argv[2];
     input_dir = argv[3];
 
-    archive.open(archive_file, fstream::in | fstream::out | fstream::app);
+    // archive.open(archive_file, fstream::in | fstream::out | fstream::app);
 
-    if (archive.is_open()) {
-        cout << "Archive is opened" << endl;
-    }
-    else {
-        cerr << "[ERROR] Archive failed to open" << endl;
-    }
+    // if (archive.is_open()) {
+    //     cout << "Archive is opened" << endl;
+    // }
+    // else {
+    //     cerr << "[ERROR] Archive failed to open" << endl;
+    // }
 
     // Getting arguments from the command line
     if (strcmp(argv[1], "-c") == 0) { // store
         // store files/directories into archive file
+        openArchive(archive, input_dir, true);
         storeFiles(archive, input_dir, true, file_count);
     }
     else if (strcmp(argv[1], "-a") == 0) { // append
         // append files/directories into archive file
+        openArchive(archive, input_dir, false);
         storeFiles(archive, input_dir, true, file_count);
     }
     else if (strcmp(argv[1], "-x") == 0) { // extract
