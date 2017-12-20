@@ -4,13 +4,12 @@
  */
 
 #include <iostream>
+#include <fstream>
 #include <fcntl.h>
 #include <dirent.h>
 #include <sys/stat.h>
-#include <fstream>
 
-#define HDR_SIZE (126 + sizeof(uid_t) + sizeof(gid_t) + sizeof(mode_t) + sizeof(off_t))
-
+#define HDR_SIZE 150
 
 using namespace std;
 
@@ -18,10 +17,6 @@ using namespace std;
 bool isDir(string dir) {
     struct stat fileInfo;
     stat(dir.c_str(), &fileInfo);
-    // cout << fileInfo.st_uid << endl;
-    // cout << fileInfo.st_gid << endl;
-    // cout << fileInfo.st_mode << endl;
-    // cout << fileInfo.st_size << endl;
     if (S_ISDIR(fileInfo.st_mode)) {
         return true;
     }
@@ -30,7 +25,7 @@ bool isDir(string dir) {
     }
 }
 
-void storeFiles(fstream &archive, string baseDir, bool recursive) {
+void storeFiles(fstream &archive, string baseDir, bool recursive, int &file_count) {
     DIR *dp;
     struct dirent *dirp;
 
@@ -44,19 +39,22 @@ void storeFiles(fstream &archive, string baseDir, bool recursive) {
             if (dirp->d_name != string(".") && dirp->d_name != string("..") &&
                 dirp->d_name != string(".DS_Store")) {
                 // some char to string operations to make isDir and stat work
-//            char x[100];
-//            strcpy(x, baseDir);
                 string base = baseDir;
                 string name = dirp->d_name;
 
                 if (isDir(base + name) && recursive) { // directory
-                    // storeFiles(archive, baseDir + dirp->d_name + "/", true);
+                    storeFiles(archive, baseDir + dirp->d_name + "/", true, file_count);
                 }
                 else { // file
                     // get information of the input file
                     struct stat fileInfo;
                     stat((base + name).c_str(), &fileInfo);
-//                    base.pop_back(); // remove newline char
+
+                    string uid, gid, mode, size;
+                    uid = to_string(fileInfo.st_uid);
+                    gid = to_string(fileInfo.st_gid);
+                    mode = to_string(fileInfo.st_mode);
+                    size = to_string(fileInfo.st_size);
 
                     cout << "File name: " << base << name << endl;
                     cout << "User ID: " << fileInfo.st_uid << endl;
@@ -65,11 +63,19 @@ void storeFiles(fstream &archive, string baseDir, bool recursive) {
                     cout << "Size: " << fileInfo.st_size << endl;
 
                     // write meta data to the archive file
+<<<<<<< HEAD
+                    archive.write((base + name + "\0").c_str(), 126); // write file name
+                    archive.write((uid + "\0").c_str(), 4);           // write the user ID
+                    archive.write((gid + "\0").c_str(), 4);           // write the group ID
+                    archive.write((mode + "\0").c_str(), 6);          // write the mode
+                    archive.write((size + "\0").c_str(), 10);         // write the size
+=======
                     archive.write((base + name + "\0" + "\n").c_str(), 126); // write file name
                     archive << fileInfo.st_uid << endl;                       // write the user ID
                     archive << fileInfo.st_gid << endl;                       // write the group ID
                     archive << fileInfo.st_mode << endl;                      // write the mode
                     archive << fileInfo.st_size << endl;                      // write the size
+>>>>>>> master
 
                     // copy the file content
                     ifstream infile;
@@ -87,10 +93,50 @@ void storeFiles(fstream &archive, string baseDir, bool recursive) {
                     else {
                         cerr << "[ERROR] Failed to open file: " << base << name << endl;
                     }
+
+                    file_count++;
                 }
             }
         }
         closedir(dp);
+    }
+}
+
+void printMetaData(fstream &archive, int file_count) {
+    cout << "Printing meta data" << endl;
+    char filename[126], uid[4], gid[4], mode[6], size[10];
+    // find the length of the archive
+    archive.seekg(0, archive.end);
+    int length = archive.tellg();
+    // set the position to beginnign of archive
+    archive.seekg(0, archive.beg);
+    int offset = 0;
+
+    // get meta data for files
+    for (int i = 0; i < 16; i++) {        
+        // file name
+        archive.read(filename, 126);
+        cout << "[FILE]\t" << filename << endl;
+
+        // user ID
+        archive.read(uid, 4);
+        cout << "\tUser ID: " << uid << endl;
+
+        // group ID
+        archive.read(gid, 4);
+        cout << "\tGroup ID: " << gid << endl;
+
+        // mode
+        archive.read(mode, 6);
+        cout << "\tMode: " << mode << endl;
+
+        // size
+        archive.read(size, 10);
+        cout << "\tSize: " << size << endl;
+
+        // get to the next file
+        offset = stoi(size);
+        archive.seekg(offset + 1, archive.cur);
     }
 }
 
@@ -118,7 +164,11 @@ void listFiles(string baseDir, bool recursive) {
     }
 }
 
+<<<<<<< HEAD
+void openArchive(fstream &archive, char* archive_file, bool discardContent) {
+=======
 void openFile(fstream &archive, char* archive_file, bool discardContent) {
+>>>>>>> master
     if (discardContent) {
         cout << "discarding content" << endl; 
         archive.open(archive_file, fstream::in | fstream:: out | fstream::trunc);
@@ -149,15 +199,36 @@ int main(int argc, char *argv[]) {
 
     char *archive_file, *input_dir;
     fstream archive;
+    int file_count = 0;
 
     archive_file = argv[2];
     input_dir = argv[3];
 
+<<<<<<< HEAD
+    // archive.open(archive_file, fstream::in | fstream::out | fstream::app);
 
+    // if (archive.is_open()) {
+    //     cout << "Archive is opened" << endl;
+    // }
+    // else {
+    //     cerr << "[ERROR] Archive failed to open" << endl;
+    // }
+=======
+
+>>>>>>> master
 
     // Getting arguments from the command line
     if (strcmp(argv[1], "-c") == 0) { // store
         // store files/directories into archive file
+<<<<<<< HEAD
+        openArchive(archive, input_dir, true);
+        storeFiles(archive, input_dir, true, file_count);
+    }
+    else if (strcmp(argv[1], "-a") == 0) { // append
+        // append files/directories into archive file
+        openArchive(archive, input_dir, false);
+        storeFiles(archive, input_dir, true, file_count);
+=======
         openFile(archive, archive_file, true); 
         storeFiles(archive, input_dir, true);
     }
@@ -165,12 +236,14 @@ int main(int argc, char *argv[]) {
         // append files/directories into archive file
         openFile(archive, archive_file, false); 
         storeFiles(archive, input_dir, true);
+>>>>>>> master
     }
     else if (strcmp(argv[1], "-x") == 0) { // extract
         // extract all files from archive file
     }
     else if (strcmp(argv[1], "-m") == 0) { // print meta data
         // print out meta data for all files/directories inside archive file
+        printMetaData(archive, file_count);
     }
     else if (strcmp(argv[1], "-p") == 0) { // display hierarchy
         // display hierarchy of files/directories inside archive file
