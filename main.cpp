@@ -9,8 +9,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
-#define HDR_SIZE (126 + sizeof(uid_t) + sizeof(gid_t) + sizeof(mode_t) + sizeof(off_t))
-
+#define HDR_SIZE 150
 
 using namespace std;
 
@@ -51,6 +50,12 @@ void storeFiles(fstream &archive, string baseDir, bool recursive) {
                     struct stat fileInfo;
                     stat((base + name).c_str(), &fileInfo);
 
+                    string uid, gid, mode, size;
+                    uid = to_string(fileInfo.st_uid);
+                    gid = to_string(fileInfo.st_gid);
+                    mode = to_string(fileInfo.st_mode);
+                    size = to_string(fileInfo.st_size);
+
                     cout << "File name: " << base << name << endl;
                     cout << "User ID: " << fileInfo.st_uid << endl;
                     cout << "Group ID: " << fileInfo.st_gid << endl;
@@ -59,10 +64,19 @@ void storeFiles(fstream &archive, string baseDir, bool recursive) {
 
                     // write meta data to the archive file
                     archive.write((base + name + "\0").c_str(), 126); // write file name
-                    archive << fileInfo.st_uid;                       // write the user ID
-                    archive << fileInfo.st_gid;                       // write the group ID
-                    archive << fileInfo.st_mode;                      // write the mode
-                    archive << fileInfo.st_size;                      // write the size
+                    // archive << fileInfo.st_uid;                       // write the user ID
+                    // archive << fileInfo.st_gid;                       // write the group ID
+                    // archive << fileInfo.st_mode;                      // write the mode
+                    // archive << fileInfo.st_size;                      // write the size
+                    // archive.write(uid.c_str(), sizeof(uid_t));
+                    // archive.write(gid.c_str(), sizeof(gid_t));
+                    // archive.write(mode.c_str(), mode.length());
+                    // archive.write(size.c_str(), sizeof(off_t));
+                    archive.write((uid + "\0").c_str(), 4);
+                    archive.write((gid + "\0").c_str(), 4);
+                    archive.write((mode + "\0").c_str(), 6);
+                    archive.write((size + "\0").c_str(), 10);
+
 
                     // copy the file content
                     ifstream infile;
@@ -88,21 +102,31 @@ void storeFiles(fstream &archive, string baseDir, bool recursive) {
 
 void printMetaData(fstream &archive) {
     cout << "Printing meta data" << endl;
-//    string filename, uid, gid, mode, size;
+    char filename[126], uid[sizeof(uid_t)], gid[sizeof(gid_t)], mode[sizeof(mode_t)], size[sizeof(off_t)];
 
-    cout << archive.rdbuf() << endl;
+    // cout << archive.rdbuf() << endl;
 
     // getting the file name
-//    char c = (char) archive.get();
-//    cout << c << endl;
-//    while (!archive.eof()) {
-//        cout << c << endl;
-//        if (c != '\0') {
-//            filename += c;
-//            c = (char) archive.get();
-//        }
-//    }
-//    cout << filename << endl;
+    cout << "Getting file name" << endl;
+    archive.seekg(0, archive.beg);
+    archive.read(filename, 126);
+    cout << filename << endl;
+
+    archive.seekg(126, archive.beg);
+    archive.read(uid, 4);
+    cout << uid << endl;
+
+    archive.seekg(130, archive.beg);
+    archive.read(gid, 4);
+    cout << gid << endl;
+
+    archive.seekg(134, archive.beg);
+    archive.read(mode, 6);
+    cout << mode << endl;
+
+    archive.seekg(140, archive.beg);
+    archive.read(size, 10);
+    cout << size << endl;
 }
 
 void listFiles(string baseDir, bool recursive) {
@@ -146,7 +170,7 @@ int main(int argc, char *argv[]) {
     archive_file = argv[2];
     input_dir = argv[3];
 
-    archive.open(archive_file, fstream::in | fstream:: out);
+    archive.open(archive_file, fstream::in | fstream:: out | fstream::app);
 
     if (archive.is_open()) {
         cout << "Archive is opened" << endl;
