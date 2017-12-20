@@ -65,11 +65,11 @@ void storeFiles(fstream &archive, string baseDir, bool recursive) {
                     cout << "Size: " << fileInfo.st_size << endl;
 
                     // write meta data to the archive file
-                    archive.write((base + name + "\0").c_str(), 126); // write file name
-                    archive << fileInfo.st_uid;                       // write the user ID
-                    archive << fileInfo.st_gid;                       // write the group ID
-                    archive << fileInfo.st_mode;                      // write the mode
-                    archive << fileInfo.st_size;                      // write the size
+                    archive.write((base + name + "\0" + "\n").c_str(), 126); // write file name
+                    archive << fileInfo.st_uid << endl;                       // write the user ID
+                    archive << fileInfo.st_gid << endl;                       // write the group ID
+                    archive << fileInfo.st_mode << endl;                      // write the mode
+                    archive << fileInfo.st_size << endl;                      // write the size
 
                     // copy the file content
                     ifstream infile;
@@ -81,6 +81,7 @@ void storeFiles(fstream &archive, string baseDir, bool recursive) {
                             c = (char) infile.get();
                             archive.put(c);
                         }
+                        cout << "" << endl; 
                         infile.close();
                     }
                     else {
@@ -117,6 +118,24 @@ void listFiles(string baseDir, bool recursive) {
     }
 }
 
+void openFile(fstream &archive, char* archive_file, bool discardContent) {
+    if (discardContent) {
+        cout << "discarding content" << endl; 
+        archive.open(archive_file, fstream::in | fstream:: out | fstream::trunc);
+    }
+    else {
+        cout << "keeping content" << endl; 
+        archive.open(archive_file, std::ios::app);
+    }
+
+
+    if (archive.is_open()) {
+        cout << "Archive is opened" << endl;
+    }
+    else {
+        cerr << "[ERROR] Archive failed to open" << endl;
+    }    
+}
 
 int main(int argc, char *argv[]) {
 
@@ -134,22 +153,18 @@ int main(int argc, char *argv[]) {
     archive_file = argv[2];
     input_dir = argv[3];
 
-    archive.open(archive_file, fstream::in | fstream:: out | fstream::trunc);
 
-    if (archive.is_open()) {
-        cout << "Archive is opened" << endl;
-    }
-    else {
-        cerr << "[ERROR] Archive failed to open" << endl;
-    }
 
     // Getting arguments from the command line
     if (strcmp(argv[1], "-c") == 0) { // store
         // store files/directories into archive file
+        openFile(archive, archive_file, true); 
         storeFiles(archive, input_dir, true);
     }
     else if (strcmp(argv[1], "-a") == 0) { // append
         // append files/directories into archive file
+        openFile(archive, archive_file, false); 
+        storeFiles(archive, input_dir, true);
     }
     else if (strcmp(argv[1], "-x") == 0) { // extract
         // extract all files from archive file
