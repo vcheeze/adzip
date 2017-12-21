@@ -154,32 +154,30 @@ void extractFiles(fstream &archive, bool recursive) {
     while (current < length) {
         // file name
         archive.read(filename, 126);
-        cout << "[FILE]\t" << filename << endl;
+        // cout << "[FILE]\t" << filename << endl;
 
         // user ID
         archive.read(uid, 4);
-        cout << "\tUser ID: " << uid << endl;
+        // cout << "\tUser ID: " << uid << endl;
 
         // group ID
         archive.read(gid, 4);
-        cout << "\tGroup ID: " << gid << endl;
+        // cout << "\tGroup ID: " << gid << endl;
 
         // mode
         archive.read(mode, 6);
-        cout << "\tMode: " << mode << endl;
+        // cout << "\tMode: " << mode << endl;
 
         // size
         archive.read(size, 10);
-        cout << "\tSize: " << size << endl;
+        // cout << "\tSize: " << size << endl;
 
-        // // content 
-        // archive.read(content, 1000); 
-        // cout << "\tContent: " << size << endl;
+        // content 
+        // archive.read(content, stoi(size)); 
 
         char *splitName;
 
         splitName = strtok (filename, "/");  
-        // printf("DIRECTORY: %s\n", splitName);
         strcpy(path, splitName); 
         mkdir(path,  0777);
         splitName = strtok (NULL, "/");
@@ -193,20 +191,22 @@ void extractFiles(fstream &archive, bool recursive) {
             cout << "PATH: " << path << endl;
             mkdir(path,  0777);
 
-            printf ("%s\n",splitName);
+            // printf ("%s\n",splitName);
             splitName = strtok (NULL, "/");
         }
 
         rmdir(path); 
 
         fstream newFile; 
-        newFile.open(path, fstream::in | fstream:: out | fstream::trunc);    
+        newFile.open(path, fstream:: out | fstream::trunc);    
         if (newFile.is_open()) {
             cout << "File created" << endl;
         }
         else {
             cerr << "[ERROR] New file failed to open" << endl;
         }  
+
+        // newFile.write(content, stoi(size)); 
 
         // get to the next file
         offset = stoi(size);
